@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -28,8 +30,8 @@ func init() {
 		initCmdAliasBindings,
 		initAppConfig,
 		initLogging,
-		logAppVersion,
 		logAppConfig,
+		logAppVersion,
 		initEventBus,
 	)
 }
@@ -104,7 +106,31 @@ func initLogging() {
 func logAppVersion() {
 	versionInfo := version.FromBuild()
 	log.Infof("syft version: %s", versionInfo.Version)
-	log.Debugf("syft version: \n%s\n", versionInfo.AsText())
+
+	var fields map[string]interface{}
+	bytes, err := json.Marshal(versionInfo)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(bytes, &fields)
+	if err != nil {
+		return
+	}
+
+	keys := make([]string, 0, len(fields))
+	for k := range fields {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for idx, field := range keys {
+		value := fields[field]
+		branch := "├──"
+		if idx == len(fields)-1 {
+			branch = "└──"
+		}
+		log.Debugf("  %s %s: %s", branch, field, value)
+	}
 }
 
 func logAppConfig() {
