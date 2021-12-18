@@ -32,6 +32,7 @@ func init() {
 		initLogging,
 		logAppConfig,
 		logAppVersion,
+		checkForApplicationUpdate,
 		initEventBus,
 	)
 }
